@@ -2,6 +2,8 @@
 
 Send files, links, and text between a phone and a laptop through a QR pairing link.
 
+Live preview: https://quickdrop-production-c094212e.up.railway.app
+
 ## Run the app
 
 Install Node.js 22 or newer. Open a terminal in this folder and run:
@@ -34,4 +36,5 @@ The included Dockerfile packages QuickDrop for a Node container host. The Railwa
 
 Connect the GitHub repository to a Railway service and enable autodeploys on main. Configure storage and review the hosting price before activating a service. The current version needs enough writable temporary storage for 10 GB uploads and uses a 20 GB process-wide storage budget. It also needs the host's HTTP request duration and upload limits to accommodate the planned file size and connection speed. Review Railway's current network limits before promising 10 GB transfers on a slow connection.
 
-The configuration is prepared. Account linking, storage provisioning, a hosted transfer check, and an actual automatic redeployment still need to be completed.
+The GitHub main branch is connected to Railway. The first container build and deployment succeeded, and HTTPS pairing, text, and a sample file round trip passed. A full 10 GB transfer was verified locally. Hosted 10 GB storage capacity and performance are still unverified. The current transfer uses temporary server storage. Direct encrypted peer-to-peer transfers and connection verification codes remain planned.
+
