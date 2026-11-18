@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>QuickDrop · Device transfer</title>
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-row">
+      <a class="brand" href="/" aria-label="QuickDrop home">
+        <img src="/brand/quickdrop-wordmark.png" alt="" width="680" height="183">
+      </a>
+      <span class="status" id="connection" role="status"><i aria-hidden="true"></i> Starting</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="intro">
+      <h1>Send it to<br>your other device.</h1>
+      <p>Move a file, a link, or a note between your phone and laptop.</p>
+    </section>
+    <div class="workspace">
+      <section class="panel pairing" aria-labelledby="pair-title">
+        <h2 id="pair-title">Pair your devices</h2>
+        <p id="pair-help">Scan this code with your phone on the same Wi-Fi.</p>
+        <div id="qr-box" class="qr-box"><p id="qr-placeholder">Preparing pairing code…</p><img id="qr" alt="Pairing QR code" width="210" height="210" hidden></div>
+        <div class="pair-actions">
+          <button id="copy-link" class="secondary" hidden>Copy pairing link</button>
+          <button id="restart" class="secondary" hidden>Start a new session</button>
+        </div>
+      </section>
+      <section class="panel transfer" aria-labelledby="transfer-title">
+        <h2 id="transfer-title">Send something</h2>
+        <p>One file at a time, up to 10 GB.</p>
+        <fieldset id="send-controls" disabled>
+          <label class="file-pick" for="file"><span class="upload-mark" aria-hidden="true">↑</span><span><strong>Choose a file</strong><small id="file-name">Photos, PDFs, and other files</small></span></label>
+          <input id="file" type="file" class="file-input">
+          <button id="send-file" class="primary" disabled>Send file</button>
+          <button id="cancel-upload" class="secondary" hidden>Cancel upload</button>
+          <progress id="upload-progress" max="1" value="0" aria-label="Upload progress" hidden></progress>
+          <label class="text-label" for="message">Text or link</label>
+          <textarea id="message" maxlength="5000" rows="3" placeholder="Paste a link or type a note"></textarea>
+          <button id="send-text" class="primary" disabled>Send text</button>
+        </fieldset>
+        <p id="feedback" class="feedback" role="status">Pair a device to start sending.</p>
+      </section>
+    </div>
+    <section class="panel received" aria-labelledby="received-title">
+      <h2 id="received-title">Received</h2>
+      <p id="empty">Files and text from your other device will appear here.</p>
+      <ul id="inbox" aria-live="polite"></ul>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="wrap footer-row">
+      <img src="/brand/quickdrop-wordmark.png" alt="QuickDrop" width="680" height="183" loading="lazy">
+    </div>
+  </footer>
+</body>
+</html>
