@@ -36,9 +36,20 @@ export async function createTransfers({ send, touch }) {
 
   function authorize(room, socket, other) {
     const key = randomBytes(24).toString('base64url');
-    devices.set(key, { room, other });
+    devices.set(key, { room, role: room.host === socket ? 'host' : 'peer' });
     socket.uploadKey = key;
     return key;
+  }
+
+  function resume(key, socket) {
+    const device = devices.get(key);
+    if (!device || device.room.closed || device.room.expires <= Date.now()) return null;
+    const { room, role } = device;
+    const old = room[role];
+    room[role] = socket;
+    socket.uploadKey = key;
+    old?.close();
+    return room;
   }
 
   async function removeFile(file) {
@@ -63,7 +74,7 @@ export async function createTransfers({ send, touch }) {
   async function upload(req, res) {
     const device = devices.get(req.headers['x-quickdrop-key']);
     if (!device) return respond(res, 403, 'Pair another device before sending a file.');
-    const { room, other } = device;
+    const { room, role } = device;
     const size = Number(req.headers['content-length']);
     if (!Number.isSafeInteger(size)) return respond(res, 411, 'QuickDrop needs the file size before the upload can start.');
     if (size < 1 || size > fileLimit) return respond(res, 413, 'Choose a file between 1 byte and 10 GB.');
@@ -88,7 +99,8 @@ export async function createTransfers({ send, touch }) {
         for (const socket of [room.host, room.peer]) send(socket, { type: 'file-removed', id: previous.id });
         void removeFile(previous);
       }
-      send(other, { type: 'file', id, name });
+      file.recipient = role === 'host' ? 'peer' : 'host';
+      send(room[file.recipient], { type: 'file', id, name });
       respond(res, 201, 'File ready to download.');
     } catch {
       await removeFile(file);
@@ -126,5 +138,5 @@ export async function createTransfers({ send, touch }) {
     }
   }
 
-  return { authorize, upload, download, closeRoom, cleanup: () => rm(directory, { recursive: true, force: true }) };
+  return { authorize, resume, upload, download, closeRoom, cleanup: () => rm(directory, { recursive: true, force: true }) };
 }

@@ -21,6 +21,9 @@ let paired = false;
 let sending = false;
 let ended = false;
 let uploadKey;
+let socket;
+let reconnectTimer;
+let reconnectDeadline;
 let activeUpload;
 let receivedFile;
 let receivedFileId;
@@ -43,6 +46,8 @@ function refreshControls() {
 
 function finish(text) {
   ended = true;
+  clearTimeout(reconnectTimer);
+  uploadKey = undefined;
   activeUpload?.abort();
   removeFile(receivedFileId);
   paired = false;
@@ -105,9 +110,16 @@ async function copy(value) {
 
 const url = new URL('/connect', location.href);
 url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-const socket = new WebSocket(url);
+function connect() {
+  if (ended) return;
+  socket = new WebSocket(url);
 
 socket.addEventListener('open', () => {
+  if (uploadKey) {
+    status('Reconnecting');
+    socket.send(JSON.stringify({ type: 'resume', key: uploadKey }));
+    return;
+  }
   if (token) {
     status('Joining');
     placeholder.textContent = 'Connecting to the other device…';
@@ -119,7 +131,17 @@ socket.addEventListener('open', () => {
   socket.send(JSON.stringify(token ? { type: 'join', token } : { type: 'create' }));
 });
 
-socket.addEventListener('close', () => { if (!ended) finish('Connection closed. Start a new session.'); });
+socket.addEventListener('close', () => {
+  if (ended) return;
+  if (!uploadKey) return finish('Connection closed. Start a new session.');
+  paired = false;
+  refreshControls();
+  status('Reconnecting');
+  notice('Connection interrupted. Reconnecting to your paired device…');
+  reconnectDeadline ||= Date.now() + 90_000;
+  if (Date.now() >= reconnectDeadline) return finish('Could not reconnect. Start a new session and scan its QR code.');
+  reconnectTimer = setTimeout(connect, 1500);
+});
 socket.addEventListener('message', ({ data }) => {
   const packet = JSON.parse(data);
   switch (packet.type) {
@@ -133,7 +155,14 @@ socket.addEventListener('message', ({ data }) => {
       placeholder.hidden = true;
       copyLink.hidden = false;
       break;
+    case 'peer-away':
+      paired = false;
+      refreshControls();
+      status('Waiting for device');
+      notice('Your other device disconnected. Keep this tab open while it reconnects.');
+      break;
     case 'paired':
+      reconnectDeadline = undefined;
       uploadKey = packet.uploadKey;
       paired = true;
       refreshControls();
@@ -184,6 +213,15 @@ socket.addEventListener('message', ({ data }) => {
   }
 });
 
+}
+connect();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !ended && socket.readyState === WebSocket.CLOSED) {
+    clearTimeout(reconnectTimer);
+    connect();
+  }
+});
+
 fileInput.addEventListener('change', () => {
   element('file-name').textContent = fileInput.files[0]?.name || 'Photos, PDFs, and other files';
   refreshControls();
@@ -216,6 +254,8 @@ sendFile.addEventListener('click', () => {
       fileInput.value = '';
       element('file-name').textContent = 'Photos, PDFs, and other files';
       notice('File ready on the other device.');
+    } else if (!ended && upload.status === 403) {
+      finish('Pairing expired. Start a new session on your laptop and scan the new QR code.');
     } else if (!ended && upload.status > 0) {
       notice(upload.responseText || 'Upload failed. Try again.', true);
     }

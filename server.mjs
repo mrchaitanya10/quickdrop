@@ -116,6 +116,18 @@ sockets.on('connection', (socket, origin) => {
       return;
     }
 
+    if (packet.type === 'resume' && !room && typeof packet.key === 'string') {
+      room = transfers.resume(packet.key, socket);
+      if (!room) return send(socket, { type: 'ended', message: 'Pairing expired. Start a new session and scan its QR code.' });
+      touch(room);
+      for (const device of [room.host, room.peer]) send(device, { type: 'paired', uploadKey: device.uploadKey });
+      if (room.file && room[room.file.recipient] === socket) {
+        const { id, name } = room.file;
+        send(socket, { type: 'file', id, name });
+      }
+      return;
+    }
+
     if (packet.type === 'join' && !room && !creating) {
       const candidate = typeof packet.token === 'string' && rooms.get(packet.token);
       if (!candidate || candidate.expires <= Date.now()) return error(socket, 'This pairing link expired. Start a new session.');
@@ -143,11 +155,10 @@ sockets.on('connection', (socket, origin) => {
 
   socket.on('close', () => {
     if (!room || rooms.get(room.token) !== room) return;
-    rooms.delete(room.token);
-    transfers.closeRoom(room);
+    if (room.host !== socket && room.peer !== socket) return;
+    room.expires = Date.now() + 120_000;
     const other = room.host === socket ? room.peer : room.host;
-    send(other, { type: 'ended', message: 'The other device disconnected.' });
-    other?.close();
+    send(other, { type: 'peer-away' });
   });
 });
 
