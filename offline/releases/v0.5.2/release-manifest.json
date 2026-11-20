@@ -1,0 +1,22 @@
+{
+  "project": "QuickDrop",
+  "brand": "C Labs",
+  "version": "0.5.2",
+  "snapshot_date": "2026-11-20",
+  "status": "portfolio preview baseline",
+  "android_version_code": 7,
+  "linux_package": "quickdrop-receiver",
+  "artifacts": [
+    {
+      "filename": "QuickDrop_Offline_0.5.2.apk",
+      "bytes": 479855,
+      "sha256": "4ba24e63504d698cdf2d59453d586841a97a56540fc0313c6f6d6cdd32d3b13d"
+    },
+    {
+      "filename": "QuickDrop_Receiver_0.5.2_all.deb",
+      "bytes": 195476,
+      "sha256": "bb30483ca35d35ee3ff8137f3ac835b87ef9e2373a2975b1ff3c209cdf7ecf7a"
+    }
+  ],
+  "upstream_source_archive_sha256": "11c2c2927be7b44c8cab2fffadb6bfc832e6ffb50f002d4ff38be35eaf774021"
+}

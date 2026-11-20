@@ -1,0 +1,28 @@
+# Local builds and caches
+.gradle/
+**/build/
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+.test-classes/
+tests/classes/
+tests/zxing.jar
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Machine settings, signing material and private app state
+local.properties
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+!.env.example
+receiver.json
+receiver.lock
+*.part
+
+# Intentionally keep the small, versioned preview outputs under releases/.

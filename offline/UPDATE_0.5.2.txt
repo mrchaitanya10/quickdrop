@@ -1,0 +1,5 @@
+Update phone and Linux receiver to 0.5.2.
+Addresses are probed in parallel; only the selected verified host pairs.
+Phone progress is visible under Scan and a failed attempt ends after 20s.
+The laptop distinguishes searching, found, verification and blocked connection.
+Software latency/blocked-address tests pass; actual user network still needs checking.

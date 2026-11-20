@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QuickDrop Offline</title>
+<style>
+body{font:17px system-ui;background:#f4f7f2;color:#111827;max-width:660px;margin:70px auto;padding:24px}main{padding:30px;background:white;border:1px solid #d7e3d7;border-radius:22px}h1{font-size:36px;margin:0 0 10px}button,a{background:#166534;color:white;border:0;border-radius:10px;padding:13px 20px;display:inline-block;font:inherit;text-decoration:none;cursor:pointer}#code{font-size:32px;letter-spacing:5px}p{line-height:1.5;overflow-wrap:anywhere}[hidden]{display:none}small{color:#526559}
+</style><main><h1>QuickDrop Offline</h1><p id="state">Pair with the phone to receive its selected file.</p><button id="pair">Request pairing</button><p id="code"></p><p id="file"></p><a href="/file" id="download" hidden>Accept and download</a><p><small>Keep the phone app open and both devices on the same private Wi-Fi or hotspot. This transfer uses local HTTP.</small></p></main>
+<script>
+const state=document.getElementById('state'),pair=document.getElementById('pair'),code=document.getElementById('code'),file=document.getElementById('file'),download=document.getElementById('download');
+const key=location.hash.slice(1);history.replaceState(null,'',location.pathname);
+let polling;
+pair.onclick=async()=>{
+ pair.disabled=true;
+ try{
+  const response=await fetch('/pair',{method:'POST',body:key,headers:{'Content-Type':'text/plain'}});
+  const text=await response.text();
+  if(!response.ok)throw Error(text);
+  code.textContent=text;state.textContent='Compare this code on your phone and approve the receiver there.';
+  pair.hidden=true;polling=setInterval(check,1500);check();
+ }catch(error){state.textContent=error.message;pair.disabled=false;}
+};
+async function check(){
+ try{
+  const response=await fetch('/status');const text=await response.text();
+  if(!response.ok){clearInterval(polling);download.hidden=true;state.textContent=text;return}
+  const [status,name,size]=text.split('\n');
+  if(status==='ready'){code.textContent='';state.textContent='Paired. Accept the file below to start downloading.';file.textContent=name+' · '+(Number(size)/1e6).toFixed(1)+' MB';download.hidden=false}
+  if(status==='empty'){download.hidden=true;state.textContent='Choose a file in QuickDrop on the phone.'}
+ }catch(error){download.hidden=true;state.textContent='Phone unavailable. Keep QuickDrop open and check your Wi-Fi connection.';}
+}
+</script></html>
